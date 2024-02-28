@@ -3,13 +3,14 @@ from tkinter import ttk
 from datetime import datetime
 from channel import Channel
 
-
+# Define the Message class
 class Message:
     def __init__(self, author, content):
         self.author = author
         self.content = content
         self.timestamp = datetime.now()
 
+# Define the ChatApp class
 class ChatApp:
     def __init__(self, root):
         self.root = root
@@ -45,7 +46,7 @@ class ChatApp:
         # Populate initial messages
         self.populate_messages()
 
-    def populate_messages(self):
+    def populate_messages(self): # Populate the message listbox with the current channel's messages
         self.message_listbox.delete(0, tk.END)
         for message in self.current_channel.messages:
             timestamp_str = message.timestamp.strftime("(%H:%M %d/%m/%Y)")
@@ -53,7 +54,7 @@ class ChatApp:
             self.message_listbox.insert(tk.END, f"{message.content}")
 
     def send_message(self):
-        content = self.message_entry.get()
+        content = self.message_entry.get() # Get the message from the entry
         if content:
             message = Message("User", content)  # For simplicity, assume all messages are from the same user
             self.current_channel.messages.append(message)

@@ -44,7 +44,7 @@ def signup():
 
 
 def sign():
-    window.destroy()
+    window.destroy
 
 
 

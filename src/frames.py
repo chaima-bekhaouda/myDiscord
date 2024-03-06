@@ -1,5 +1,36 @@
+import re
 import tkinter as tk
+import tkinter.messagebox as msgbox
 from tkinter import ttk
+
+from src.database import create_user, check_user
+
+
+def validate_registration(username, email, password, confirm_password):
+    if password != confirm_password:
+        msgbox.showerror("Erreur", "Les mots de passe ne correspondent pas")
+        return False
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        msgbox.showerror("Erreur", "L'email n'est pas valide")
+        return False
+    if username.lower() == "admin":
+        msgbox.showerror("Erreur", "Le nom d'utilisateur 'admin' n'est pas autorisé")
+        return False
+    user = check_user(username, password)
+    if user:
+        user = check_user(email, password)
+        if user:
+            msgbox.showerror("Erreur", "Un utilisateur avec ce nom d'utilisateur ou email existe déjà")
+            return False
+    return True
+
+
+def validate_login(username, password):
+    user = check_user(username, password)
+    if not user:
+        msgbox.showerror("Erreur", "Nom d'utilisateur ou mot de passe invalide")
+        return False
+    return True
 
 
 class Frames:
@@ -28,8 +59,7 @@ class Frames:
         ttk.Button(button_container, text="Se connecter",
                    command=lambda: self.show_frame(self.login_frame)).pack(side=tk.LEFT, padx=10)
         ttk.Button(button_container, text="S'inscrire",
-                   command=lambda: self.show_frame(self.registration_frame)).pack(
-            side=tk.LEFT, padx=10)
+                   command=lambda: self.show_frame(self.registration_frame)).pack(side=tk.LEFT, padx=10)
 
         return welcome_frame
 
@@ -37,26 +67,47 @@ class Frames:
         login_frame = ttk.Frame(self.root)
         ttk.Label(login_frame, text="Connexion", font=("Arial", 16)).pack(pady=10)
         ttk.Label(login_frame, text="Email/Nom d'utilisateur").pack()
-        ttk.Entry(login_frame).pack()
+        username_entry = ttk.Entry(login_frame)
+        username_entry.pack()
         ttk.Label(login_frame, text="Mot de passe").pack()
-        ttk.Entry(login_frame, show="*").pack()
-        ttk.Button(login_frame, text="Connexion").pack(pady=10)
+        password_entry = ttk.Entry(login_frame, show="*")
+        password_entry.pack()
+        ttk.Button(login_frame, text="Connexion",
+                   command=lambda: self.login(username_entry.get(), password_entry.get())).pack(pady=10)
         ttk.Button(login_frame, text="Retour",
-                   command=lambda: self.show_frame(self.welcome_frame)).pack(
-            pady=10)
+                   command=lambda: self.show_frame(self.welcome_frame)).pack(pady=10)
         return login_frame
 
     def create_registration_frame(self):
         registration_frame = ttk.Frame(self.root)
         ttk.Label(registration_frame, text="Inscription", font=("Arial", 16)).pack(pady=10)
         ttk.Label(registration_frame, text="Nom d'utilisateur").pack()
-        ttk.Entry(registration_frame).pack()
+        username_entry = ttk.Entry(registration_frame)
+        username_entry.pack()
         ttk.Label(registration_frame, text="Email").pack()
-        ttk.Entry(registration_frame).pack()
+        email_entry = ttk.Entry(registration_frame)
+        email_entry.pack()
         ttk.Label(registration_frame, text="Mot de passe").pack()
-        ttk.Entry(registration_frame, show="*").pack()
+        password_entry = ttk.Entry(registration_frame, show="*")
+        password_entry.pack()
         ttk.Label(registration_frame, text="Confirmer le mot de passe").pack()
-        ttk.Entry(registration_frame, show="*").pack()
-        ttk.Button(registration_frame, text="Inscription").pack(pady=10)
+        confirm_password_entry = ttk.Entry(registration_frame, show="*")
+        confirm_password_entry.pack()
+        ttk.Button(registration_frame, text="Inscription",
+                   command=lambda: self.register(username_entry.get(), email_entry.get(), password_entry.get(),
+                                                 confirm_password_entry.get())).pack(pady=10)
         ttk.Button(registration_frame, text="Retour", command=lambda: self.show_frame(self.welcome_frame)).pack(pady=10)
         return registration_frame
+
+    def register(self, username, email, password, confirm_password):
+        if not validate_registration(username, email, password, confirm_password):
+            return
+        create_user(username, email, password)
+        msgbox.showinfo("Succès", "Inscription réussie. Vous pouvez maintenant vous connecter.")
+        self.show_frame(self.login_frame)
+
+    def login(self, username, password):
+        if not validate_login(username, password):
+            return
+        msgbox.showinfo("Succès", "Connexion réussie")
+        self.show_frame(self.welcome_frame)

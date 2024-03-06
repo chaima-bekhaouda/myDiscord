@@ -33,3 +33,20 @@ def create_database():
 
     # Fermez la connexion
     conn.close()
+
+
+def create_user(username, email, password):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, password))
+    conn.commit()
+    conn.close()
+
+
+def check_user(identifier, password):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?", (identifier, identifier, password))
+    user = c.fetchone()
+    conn.close()
+    return user

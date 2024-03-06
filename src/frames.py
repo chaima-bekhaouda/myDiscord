@@ -109,5 +109,34 @@ class Frames:
     def login(self, username, password):
         if not validate_login(username, password):
             return
-        msgbox.showinfo("Succès", "Connexion réussie")
+        self.root.withdraw()
+        self.create_main_frame()
+
+    def create_main_frame(self):
+        self.main_frame = tk.Toplevel(self.root)
+        self.main_frame.title("MyDiscord")
+
+        self.logout_button = ttk.Button(self.main_frame, text="Logout", command=self.logout)
+        self.logout_button.pack(side=tk.BOTTOM)
+
+        self.channel_list = ttk.Treeview(self.main_frame)
+        self.channel_list.pack(side=tk.LEFT, fill=tk.BOTH)
+
+        self.message_area = tk.Text(self.main_frame)
+        self.message_area.pack(side=tk.TOP, fill=tk.BOTH)
+        self.message_area.config(state=tk.DISABLED)
+
+        self.message_entry = ttk.Entry(self.main_frame)
+        self.message_entry.pack(side=tk.BOTTOM, fill=tk.X)
+        self.message_entry.bind('<Return>', self.send_message)
+
+    def logout(self):
+        self.main_frame.destroy()
+        self.root.deiconify()
         self.show_frame(self.welcome_frame)
+
+    def select_channel(self, channel):
+        pass
+
+    def send_message(self, message):
+        pass

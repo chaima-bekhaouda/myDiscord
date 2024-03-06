@@ -1,1 +1,0 @@
-{'aicha': '010203', 'madame': '1234', '': {'password': '', 'email': '', 'first_name': '', 'family_name': ''}}

@@ -1,4 +1,5 @@
 import sqlite3
+import hashlib
 
 
 def create_database():
@@ -36,17 +37,22 @@ def create_database():
 
 
 def create_user(username, email, password):
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
     conn = sqlite3.connect('./../database/myDiscord.db')
     c = conn.cursor()
-    c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, password))
+    c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
     conn.commit()
     conn.close()
 
 
 def check_user(identifier, password):
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
     conn = sqlite3.connect('./../database/myDiscord.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?", (identifier, identifier, password))
+    c.execute("SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?",
+              (identifier, identifier, hashed_password))
     user = c.fetchone()
     conn.close()
     return user

@@ -141,6 +141,7 @@ class Frames:
 
         self.message_entry = ttk.Entry(self.message_container)
         self.message_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.message_entry.bind('<Return>', lambda event: self.send_message(self.message_entry.get()))
 
         self.send_button = ttk.Button(self.message_container, text="SEND",
                                       command=lambda: self.send_message(self.message_entry.get()))

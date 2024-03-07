@@ -119,16 +119,32 @@ class Frames:
         self.logout_button = ttk.Button(self.main_frame, text="Logout", command=self.logout)
         self.logout_button.pack(side=tk.BOTTOM)
 
-        self.channel_list = ttk.Treeview(self.main_frame)
+        self.channel_scrollbar = ttk.Scrollbar(self.main_frame)
+        self.channel_scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+
+        self.channel_list = ttk.Treeview(self.main_frame, yscrollcommand=self.channel_scrollbar.set)
         self.channel_list.pack(side=tk.LEFT, fill=tk.BOTH)
 
-        self.message_area = tk.Text(self.main_frame)
+        self.channel_scrollbar.config(command=self.channel_list.yview)
+
+        self.message_scrollbar = ttk.Scrollbar(self.main_frame)
+        self.message_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.message_area = tk.Text(self.main_frame, bg="light grey", yscrollcommand=self.message_scrollbar.set)
         self.message_area.pack(side=tk.TOP, fill=tk.BOTH)
         self.message_area.config(state=tk.DISABLED)
 
-        self.message_entry = ttk.Entry(self.main_frame)
-        self.message_entry.pack(side=tk.BOTTOM, fill=tk.X)
-        self.message_entry.bind('<Return>', self.send_message)
+        self.message_scrollbar.config(command=self.message_area.yview)
+
+        self.message_container = ttk.Frame(self.main_frame)
+        self.message_container.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.message_entry = ttk.Entry(self.message_container)
+        self.message_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        self.send_button = ttk.Button(self.message_container, text="SEND",
+                                      command=lambda: self.send_message(self.message_entry.get()))
+        self.send_button.pack(side=tk.RIGHT)
 
     def logout(self):
         self.main_frame.destroy()

@@ -74,17 +74,6 @@ class Frames:
         # Return the completed welcome frame
         return welcome_frame
 
-    # Change the theme of the root window
-    def change_theme(self):
-        # Get the list of available themes
-        available_themes = self.root.get_themes()
-
-        # Randomly select a theme from the list
-        selected_theme = random.choice(available_themes)
-
-        # Apply the selected theme to the root window
-        self.root.set_theme(selected_theme)
-
     # Create and return the login frame
     def create_login_frame(self):
         # Create a new frame for the login screen

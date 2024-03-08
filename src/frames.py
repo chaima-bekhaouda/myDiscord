@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.messagebox as msgbox
 from tkinter import ttk
 
-from src.database import create_user, get_channels, get_messages, add_message, get_username
+from src.database import create_user, get_channels, get_messages, add_message, get_username, add_channel
 from src.validator import Validator
 
 
@@ -11,6 +11,8 @@ class Frames:
     def __init__(self, root):
         self.root = root
         # Initialize frame components
+        self.channel_frame = None
+        self.create_channel_button = None
         self.username = None
         self.main_frame = None
         self.channel_list = None
@@ -206,11 +208,22 @@ class Frames:
             self.channel_list.insert('', 'end', text=channel[1], values=(channel[0], channel[2]))
 
         # Bind the treeview selection event to the select_channel method
-        self.channel_list.bind('<<TreeviewSelect>>',
-                               lambda event: self.select_channel(self.channel_list.selection()[0]))
+        self.channel_list.bind(
+            '<<TreeviewSelect>>',
+            lambda event: self.select_channel(self.channel_list.selection()[0])
+            if self.channel_list.selection() else None
+        )
 
         # Configure the channel scrollbar to scroll the channel list
         self.channel_scrollbar.config(command=self.channel_list.yview)
+
+        # Create a button for creating channels
+        self.create_channel_button = ttk.Button(
+            self.main_frame,
+            text="Create Channel",
+            command=self.create_channel_frame
+        )
+        self.create_channel_button.pack(side=tk.BOTTOM)
 
         # Add a scrollbar for the message area
         self.message_scrollbar = ttk.Scrollbar(self.main_frame)
@@ -237,6 +250,55 @@ class Frames:
         self.send_button = ttk.Button(self.message_container, text="SEND",
                                       command=lambda: self.send_message(self.message_entry.get()))
         self.send_button.pack(side=tk.RIGHT)
+
+    # Create a new top-level window for the channel creation frame
+    def create_channel_frame(self):
+        # Create a new top-level window for the channel creation frame
+        self.channel_frame = tk.Toplevel(self.root)
+        self.channel_frame.title("Create Channel")
+
+        # Add a title label to the frame
+        ttk.Label(self.channel_frame, text="Create Channel", font=("Arial", 16)).pack(pady=10)
+
+        # Add a label and entry for the channel name
+        ttk.Label(self.channel_frame, text="Channel Name").pack()
+        channel_name_entry = ttk.Entry(self.channel_frame)
+        channel_name_entry.pack()
+
+        # Add a create button that calls the create_channel method with the entered channel name
+        ttk.Button(self.channel_frame, text="Create",
+                   command=lambda: self.create_channel(channel_name_entry.get())).pack(pady=10)
+
+        # Validate the channel name and add the channel to the database
+
+    def create_channel(self, channel_name):
+        # Validate the channel name
+        if not channel_name.strip():
+            msgbox.showerror("Erreur", "Le nom du channel ne peut pas être vide.")
+            return
+
+        # Add the channel to the database
+        add_channel(channel_name, self.username)
+
+        # Show a success message to the user
+        msgbox.showinfo("Succès", "Channel créé avec succès.")
+
+        # Destroy the channel creation frame
+        self.channel_frame.destroy()
+
+        # Refresh the channel list
+        self.refresh_channel_list()
+
+        # Refresh the channel list
+
+    def refresh_channel_list(self):
+        # Clear the channel list
+        self.channel_list.delete(*self.channel_list.get_children())
+
+        # Get the list of channels and add them to the treeview
+        channels = get_channels()
+        for channel in channels:
+            self.channel_list.insert('', 'end', text=channel[1], values=(channel[0], channel[2]))
 
     # Destroy main frame and show welcome frame
     def logout(self):

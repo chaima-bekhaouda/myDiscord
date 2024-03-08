@@ -19,6 +19,16 @@ def create_database():
         )
     ''')
 
+    # Créez la table des channels
+    c.execute('''
+            CREATE TABLE IF NOT EXISTS channels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                user_id INTEGER,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        ''')
+
     # Créez la table des messages
     c.execute('''
         CREATE TABLE IF NOT EXISTS messages (
@@ -28,6 +38,9 @@ def create_database():
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
     ''')
+
+    # Créez un channel par défaut s'il n'existe pas déjà
+    c.execute("INSERT INTO channels (name, user_id) SELECT 'General', NULL WHERE NOT EXISTS(SELECT 1 FROM channels)")
 
     # Validez les changements
     conn.commit()
@@ -56,3 +69,20 @@ def check_user(identifier, password):
     user = c.fetchone()
     conn.close()
     return user
+
+
+def get_channels():
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM channels")
+    channels = c.fetchall()
+    conn.close()
+    return channels
+
+
+def add_channel(name, user_id):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO channels (name, user_id) VALUES (?, ?)", (name, user_id))
+    conn.commit()
+    conn.close()

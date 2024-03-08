@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.messagebox as msgbox
 from tkinter import ttk
 
-from src.database import create_user, check_user
+from src.database import create_user, check_user, get_channels
 
 
 def validate_registration(username, email, password, confirm_password):
@@ -124,6 +124,10 @@ class Frames:
 
         self.channel_list = ttk.Treeview(self.main_frame, yscrollcommand=self.channel_scrollbar.set)
         self.channel_list.pack(side=tk.LEFT, fill=tk.BOTH)
+
+        channels = get_channels()
+        for channel in channels:
+            self.channel_list.insert('', 'end', text=channel[1])
 
         self.channel_scrollbar.config(command=self.channel_list.yview)
 

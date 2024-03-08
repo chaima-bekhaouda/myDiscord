@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.messagebox as msgbox
 from tkinter import ttk
 
-from src.database import create_user, check_user, get_channels
+from src.database import create_user, check_user, get_channels, get_messages, add_message, get_username
 
 
 def validate_registration(username, email, password, confirm_password):
@@ -35,6 +35,7 @@ def validate_login(username, password):
 
 class Frames:
     def __init__(self, root):
+        self.username = None
         self.root = root
         self.login_frame = self.create_login_frame()
         self.registration_frame = self.create_registration_frame()
@@ -106,9 +107,10 @@ class Frames:
         msgbox.showinfo("Succès", "Inscription réussie. Vous pouvez maintenant vous connecter.")
         self.show_frame(self.login_frame)
 
-    def login(self, username, password):
-        if not validate_login(username, password):
+    def login(self, identifier, password):
+        if not validate_login(identifier, password):
             return
+        self.username = get_username(identifier)
         self.root.withdraw()
         self.create_main_frame()
 
@@ -127,7 +129,10 @@ class Frames:
 
         channels = get_channels()
         for channel in channels:
-            self.channel_list.insert('', 'end', text=channel[1])
+            self.channel_list.insert('', 'end', text=channel[1], values=(channel[0], channel[2]))
+
+        self.channel_list.bind('<<TreeviewSelect>>',
+                               lambda event: self.select_channel(self.channel_list.selection()[0]))
 
         self.channel_scrollbar.config(command=self.channel_list.yview)
 
@@ -157,7 +162,42 @@ class Frames:
         self.show_frame(self.welcome_frame)
 
     def select_channel(self, channel):
-        pass
+        channel_id = self.channel_list.item(channel)['values'][0]
+
+        messages = get_messages(channel_id)
+
+        self.message_area.config(state=tk.NORMAL)
+        self.message_area.delete('1.0', tk.END)
+
+        self.message_area.tag_configure("user", justify='right', background='light blue')
+        self.message_area.tag_configure("other", justify='left', background='grey')
+
+        for message in messages:
+            message_id, username, message_text, timestamp = message
+            formatted_message = f"{timestamp} - {username}: {message_text}\n"
+            if username == self.username:
+                self.message_area.insert(tk.END, formatted_message, "user")
+            else:
+                self.message_area.insert(tk.END, formatted_message, "other")
+
+        self.message_area.config(state=tk.DISABLED)
 
     def send_message(self, message):
-        pass
+        selected_channel = self.channel_list.selection()
+        if not selected_channel:
+            msgbox.showerror("Erreur", "Veuillez sélectionner un channel avant d'envoyer un message.")
+            return
+
+        if not message.strip():
+            msgbox.showerror("Erreur", "Le message ne peut pas être vide.")
+            return
+
+        channel_id = self.channel_list.item(selected_channel[0])['values'][0]
+
+        add_message(self.username, channel_id, message)
+
+        self.message_area.insert(tk.END, message + '\n')
+
+        self.message_entry.delete(0, tk.END)
+
+        self.select_channel(selected_channel[0])

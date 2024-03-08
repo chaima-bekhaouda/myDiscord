@@ -34,8 +34,11 @@ def create_database():
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
+            channel_id INTEGER,
             message TEXT NOT NULL,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id),
+            FOREIGN KEY(channel_id) REFERENCES channels(id)
         )
     ''')
 
@@ -71,6 +74,15 @@ def check_user(identifier, password):
     return user
 
 
+def get_username(identifier):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("SELECT username FROM users WHERE (username = ? OR email = ?)", (identifier, identifier))
+    username = c.fetchone()
+    conn.close()
+    return username[0]
+
+
 def get_channels():
     conn = sqlite3.connect('./../database/myDiscord.db')
     c = conn.cursor()
@@ -84,5 +96,26 @@ def add_channel(name, user_id):
     conn = sqlite3.connect('./../database/myDiscord.db')
     c = conn.cursor()
     c.execute("INSERT INTO channels (name, user_id) VALUES (?, ?)", (name, user_id))
+    conn.commit()
+    conn.close()
+
+
+def get_messages(channel_id):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("""
+        SELECT messages.id, messages.user_id, messages.message, messages.timestamp
+        FROM messages
+        WHERE channel_id = ?
+    """, (channel_id,))
+    messages = c.fetchall()
+    conn.close()
+    return messages
+
+
+def add_message(user_id, channel_id, message):
+    conn = sqlite3.connect('./../database/myDiscord.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO messages (user_id, channel_id, message) VALUES (?, ?, ?)", (user_id, channel_id, message))
     conn.commit()
     conn.close()
